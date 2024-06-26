@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c41hy7wk6kr7k"]
+
+[ext_resource type="Script" path="res://Components/Generic/Scripts/clickable_area.gd" id="1_s6qpn"]
+
+[node name="ClickableArea" type="Area2D"]
+monitoring = false
+monitorable = false
+script = ExtResource("1_s6qpn")
