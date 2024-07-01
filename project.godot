@@ -16,7 +16,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Methods="*res://Global/Scripts/methods.gd"
+Methods="*res://Global/Generic/Scripts/methods.gd"
 
 [rendering]
 
