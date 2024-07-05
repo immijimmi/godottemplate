@@ -3,58 +3,58 @@ class_name MouseInteractable extends Area2D
 
 signal ordering_outdated
 
-var is_mouse_entered:
+var is_mouse_entered: bool:
 	get: return _is_mouse_entered
 var topmost_interactable:
 	get:
 		if len(ordered_interactables) > 0:
 			return ordered_interactables[0]
-var hovered_interactables:
+var hovered_interactables: Dictionary:
 	get: return __hovered_interactables
 	set(value):
 		__hovered_interactables.clear()
 		for key in value:
 			__hovered_interactables[key] = value[key]
-var ordered_interactables:
+var ordered_interactables: Array:
 	get:
 		if is_ordering_outdated:
 			__calculate_interactables_order()
 			is_ordering_outdated = false
 		return __ordered_interactables
-var is_ordering_outdated:
+var is_ordering_outdated: bool:
 	get: return __is_ordering_outdated_container[0]
 	set(value):
-		var old_value = __is_ordering_outdated_container[0]
+		var old_value: bool = __is_ordering_outdated_container[0]
 
 		__is_ordering_outdated_container[0] = value
 
 		if (value != old_value) and (value == true):
 			ordering_outdated.emit()
-var current_event:
+var current_event: InputEvent:
 	get: return __current_event_container[0]
 	set(value): __current_event_container[0] = value
 
 ## Should only contain visible interactables.
-var __hovered_interactables = Methods.static_member(
+var __hovered_interactables: Dictionary = Methods.static_member(
 	MouseInteractable, "__hovered_interactables", {}
 )
-var __ordered_interactables = Methods.static_member(
+var __ordered_interactables: Array = Methods.static_member(
 	MouseInteractable, "__ordered_interactables", []
 )
-var __is_ordering_outdated_container = Methods.static_member(
+var __is_ordering_outdated_container: Array[bool] = Methods.static_member(
 	MouseInteractable, "__is_ordering_outdated_container", [false]
 )
 ## Assumes only one event propagates through the scene tree at a time
-var __current_event_container = Methods.static_member(
+var __current_event_container: Array = Methods.static_member(
 	MouseInteractable, "__current_event_container", [null]
 )
 
-var _is_mouse_entered = false
+var _is_mouse_entered: bool = false
 
 
 ## Can be overridden. Return value is used to specify which events will be
 ## passed into `.handle()`.
-func can_handle(viewport, event, shape_idx) -> bool:
+func can_handle(viewport: Node, event: InputEvent, shape_idx: int) -> bool:
 	return (
 		(event is InputEventMouseButton) and
 		(not event.canceled)
@@ -64,7 +64,7 @@ func can_handle(viewport, event, shape_idx) -> bool:
 ## Can be overridden to handle desired events. Return `true` in order to consume the
 ## provided event. Default behaviour (along with `.can_handle()`) blocks mouse button events
 ## (including scrolling) from being passed to interactables rendered underneath this one.
-func handle(viewport, event, shape_idx) -> bool:
+func handle(viewport: Node, event: InputEvent, shape_idx: int) -> bool:
 	return true
 
 
@@ -92,14 +92,14 @@ func _on_mouse_exited():
 		is_ordering_outdated = true
 
 
-func _on_input_event(viewport, event, shape_idx):
+func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int):
 	if current_event == event:
 		return
 	current_event = event
 
 	for interactable in ordered_interactables:
 		if interactable.can_handle(viewport, event, shape_idx):
-			var is_consumed = interactable.handle(viewport, event, shape_idx)
+			var is_consumed: bool = interactable.handle(viewport, event, shape_idx)
 
 			if is_consumed:
 				break
@@ -123,6 +123,7 @@ func _on_tree_exiting():
 
 
 func __calculate_interactables_order():
-	__ordered_interactables = __hovered_interactables.keys().sort_custom(
+	__ordered_interactables = __hovered_interactables.keys()
+	__ordered_interactables.sort_custom(
 		Methods.reverse_render_order_sort_key
 	)
