@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1krjalmjcsc7"]
+
+[ext_resource type="Script" path="res://Components/Generic/Scripts/effect_glow.gd" id="1_bqv8x"]
+
+[node name="EffectGlow" type="Node2D"]
+script = ExtResource("1_bqv8x")

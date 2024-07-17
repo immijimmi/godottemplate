@@ -1,6 +1,9 @@
 class_name ScalarAnimation extends Node
 
 
+enum STATUS {READY, PLAYING, STOPPED}
+
+
 @export_category("Scalar Animation")
 
 @export_group("Parameters")
@@ -14,6 +17,16 @@ class_name ScalarAnimation extends Node
 @onready var _parent = get_parent()
 
 # Variables used to store state for the animation while it is running
+
+var status: STATUS:
+	get:
+		if _start_output == null:
+			return STATUS.READY
+		else:
+			if self.visible:
+				return STATUS.PLAYING
+			else:
+				return STATUS.STOPPED
 
 var _start_output = null
 var _last_step_output: float
@@ -31,14 +44,13 @@ var _current_step_progress: float = 0
 ## For an animation which relies on manipulating a single property of the node,
 ## the returned value can just be the current value of that property.
 ## Cases which should be considered by this method:
-## If `_start_output` is null, the animation has not yet been initialised and
-## should have its state set to appropriate values for the start of the animation.
-## If `_start_output` is not null and the node is not visible when this method is invoked,
-## the animation has just been stopped and should have its state set accordingly
-## (the appropriate state for a stopped animation may vary for different animations).
-## If `_start_output` is not null and the node is visible when this method is invoked,
-## The animation is playing and this method should progress it according to
-## the states of the node's variables.
+## - If `status` is `STATUS.READY`, the animation should have its state set to appropriate
+##   values to begin playing
+## - If `status` is `STATUS.STOPPED`, the animation has just been stopped and should have
+##   its state set accordingly (the appropriate state for a stopped animation will depend
+##   on your desired behaviour for that animation)
+## - If `status` is `STATUS.PLAYING`, the animation is playing and this method should
+##   progress it according to the states of the node's variables
 func _update() -> float:
 	Methods.throw_error("not implemented")
 	return 0
@@ -74,15 +86,11 @@ func _on_visibility_changed():
 			_current_step_index = start_step_index
 			_current_step_delta = 0
 
-		# Start a fresh animation
 		_last_output = _update()
-		# Start a new animation step
 		_last_step_output = _last_output
-		# Update current animation frame
 		_start_output = _last_output
 
 	else:
-		# Update current animation frame
 		_last_output = _update()
 
 
@@ -95,9 +103,7 @@ func __process_animation(delta):
 		if _current_step_delta >= current_step_duration:
 			_current_step_progress = 1
 
-			# Start a new animation step
 			_last_output = _update()
-			# Update current animation frame
 			_last_step_output = _last_output
 
 			# Increment step index
@@ -116,8 +122,5 @@ func __process_animation(delta):
 
 		else:
 			_current_step_progress = _current_step_delta/current_step_duration
-
-			# Update current animation frame
 			_update()
-
 			break
