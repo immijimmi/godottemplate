@@ -28,15 +28,29 @@ var status: STATUS:
 			else:
 				return STATUS.STOPPED
 
+var current_step_index: int:
+	get: return __current_step_index
+	set(value):
+		__current_step_index = value
+		__previous_step_index = ((value-1) + len(step_values)) % len(step_values)
+		__next_step_index = (value+1) % len(step_values)
+var previous_step_index: int:
+	get: return __previous_step_index
+var next_step_index: int:
+	get: return __next_step_index
+
 var _start_output = null
 var _last_step_output: float
 var _last_output: float
 
-var _current_step_index: int
 var _current_step_delta: float = 0
 ## Stores a value between 0 and 1 indicating what percentage of the current animation
 ## step has elapsed.
 var _current_step_progress: float = 0
+
+var __previous_step_index: int
+var __current_step_index: int
+var __next_step_index: int 
 
 
 ## Must be overridden with a method which updates the node's properties to progress
@@ -83,7 +97,7 @@ func _on_visibility_changed():
 	if self.visible:
 		if !is_persistent:
 			_start_output = null
-			_current_step_index = start_step_index
+			current_step_index = start_step_index
 			_current_step_delta = 0
 
 		_last_output = _update()
@@ -98,7 +112,7 @@ func __process_animation(delta):
 	_current_step_delta += delta
 
 	while true:
-		var current_step_duration: float = step_durations[_current_step_index]
+		var current_step_duration: float = step_durations[current_step_index]
 
 		if _current_step_delta >= current_step_duration:
 			_current_step_progress = 1
@@ -107,11 +121,11 @@ func __process_animation(delta):
 			_last_step_output = _last_output
 
 			# Increment step index
-			_current_step_index = (_current_step_index+1) % len(step_values)
+			current_step_index = next_step_index
 
 			_current_step_delta -= current_step_duration
 
-			if (!is_repeating) and (_current_step_index == start_step_index):
+			if (!is_repeating) and (current_step_index == start_step_index):
 				# Stop animation after 1 loop has completed
 				self.visible = false
 				return
