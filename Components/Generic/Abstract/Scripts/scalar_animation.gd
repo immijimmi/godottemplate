@@ -39,6 +39,13 @@ var previous_step_index: int:
 var next_step_index: int:
 	get: return __next_step_index
 
+var current_step_value: float:
+	get: return step_values[current_step_index]
+var previous_step_value: float:
+	get: return step_values[previous_step_index]
+var next_step_value: float:
+	get: return step_values[next_step_index]
+
 var _start_output = null
 var _last_step_output: float
 var _last_output: float
