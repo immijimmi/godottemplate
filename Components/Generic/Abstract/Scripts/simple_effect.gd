@@ -1,12 +1,10 @@
-class_name ScalarAnimation extends Node
+class_name SimpleEffect extends Node
 
 
 enum STATUS {READY, PLAYING, STOPPED}
 
 
-@export_category("Scalar Animation")
-
-@export_group("Parameters")
+@export_category("SimpleEffect")
 @export var step_values: Array[float]
 @export var step_durations: Array[float]
 @export var start_step_index: int = 0
@@ -15,8 +13,6 @@ enum STATUS {READY, PLAYING, STOPPED}
 @export var is_physics_animation: bool = false
 
 @onready var _parent = get_parent()
-
-# Variables used to store state for the animation while it is running
 
 var status: STATUS:
 	get:
@@ -61,12 +57,12 @@ var __next_step_index: int
 
 
 ## Must be overridden with a method which updates the node's properties to progress
-## the animation, and which returns a value indicating the current state of the animation.
-## For an animation which relies on manipulating a single property of the node,
+## the effect's animation, and which returns a value indicating the current state of
+## that animation. For an animation which relies on manipulating a single property of the node,
 ## the returned value can just be the current value of that property.
 ## Cases which should be considered by this method:
 ## - If `status` is `STATUS.READY`, the animation should have its state set to appropriate
-##   values to begin playing
+##   values to begin playing (or to continue playing, if the animation is persistent)
 ## - If `status` is `STATUS.STOPPED`, the animation has just been stopped and should have
 ##   its state set accordingly (the appropriate state for a stopped animation will depend
 ##   on your desired behaviour for that animation)
@@ -83,8 +79,12 @@ func _ready():
 			"step values array and step durations array must be the same length"
 		)
 
-	if self.visible:
-		_on_visibility_changed()
+	# Initial setup
+	current_step_index = start_step_index
+	_last_output = _update()
+	_last_step_output = _last_output
+	_start_output = _last_output
+
 	# Technically this signal is not present on Node, but it is present on both
 	# Node2D (through CanvasItem) and Node3D
 	self.visibility_changed.connect(_on_visibility_changed)
@@ -92,19 +92,19 @@ func _ready():
 
 func _process(delta):
 	if (!is_physics_animation) and self.visible:
-		__process_animation(delta)
+		__process_effect(delta)
 
 
 func _physics_process(delta):
 	if is_physics_animation and self.visible:
-		__process_animation(delta)
+		__process_effect(delta)
 
 
 func _on_visibility_changed():
 	if self.visible:
 		if !is_persistent:
-			_start_output = null
 			current_step_index = start_step_index
+			_start_output = null
 			_current_step_delta = 0
 
 		_last_output = _update()
@@ -115,7 +115,7 @@ func _on_visibility_changed():
 		_last_output = _update()
 
 
-func __process_animation(delta):
+func __process_effect(delta: float):
 	_current_step_delta += delta
 
 	while true:

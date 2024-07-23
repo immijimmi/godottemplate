@@ -1,4 +1,4 @@
-extends ScalarAnimation
+extends SimpleEffect
 
 
 func _update():
