@@ -4,15 +4,11 @@ class_name SimpleEffect extends Node
 enum STATUS {READY, PLAYING, STOPPED}
 
 
-@export_category("SimpleEffect")
 @export var step_values: Array[float]
 @export var step_durations: Array[float]
-@export var start_step_index: int = 0
-@export var is_repeating: bool = true
-@export var is_persistent: bool = true
-@export var is_physics_animation: bool = false
+@export var initial_step_index: int = 0
 
-@onready var _parent = get_parent()
+@onready var _parent: Node = get_parent()
 
 var status: STATUS:
 	get:
@@ -42,6 +38,10 @@ var previous_step_value: float:
 var next_step_value: float:
 	get: return step_values[next_step_index]
 
+var _is_repeating: bool = true  # Virtual
+var _is_persistent: bool = true  # Virtual
+var _is_physics_animation: bool = false  # Virtual
+
 var _start_output = null
 var _last_step_output: float
 var _last_output: float
@@ -56,16 +56,17 @@ var __current_step_index: int
 var __next_step_index: int 
 
 
-## Must be overridden with a method which updates the node's properties to progress
-## the effect's animation, and which returns a value indicating the current state of
+## Must be overridden with a method which updates the node's state to progress
+## the effect's animation, and which returns a value indicating the current status of
 ## that animation. For an animation which relies on manipulating a single property of the node,
 ## the returned value can just be the current value of that property.
 ## Cases which should be considered by this method:
-## - If `status` is `STATUS.READY`, the animation should have its state set to appropriate
-##   values to begin playing (or to continue playing, if the animation is persistent)
+## - If `status` is `STATUS.READY`, the node should have any of its variables which would be
+##   manipulated by this animation set to appropriate starting values to begin playing
+##   (or to continue playing, if the animation is persistent)
 ## - If `status` is `STATUS.STOPPED`, the animation has just been stopped and should have
-##   its state set accordingly (the appropriate state for a stopped animation will depend
-##   on your desired behaviour for that animation)
+##   its relevant variables set accordingly (the appropriate state for a stopped animation
+##   will depend on your desired behaviour for that animation)
 ## - If `status` is `STATUS.PLAYING`, the animation is playing and this method should
 ##   progress it according to the states of the node's variables
 func _update() -> float:
@@ -80,7 +81,7 @@ func _ready():
 		)
 
 	# Initial setup
-	current_step_index = start_step_index
+	current_step_index = initial_step_index
 	_last_output = _update()
 	_last_step_output = _last_output
 	_start_output = _last_output
@@ -91,19 +92,19 @@ func _ready():
 
 
 func _process(delta):
-	if (!is_physics_animation) and self.visible:
+	if (!_is_physics_animation) and self.visible:
 		__process_effect(delta)
 
 
 func _physics_process(delta):
-	if is_physics_animation and self.visible:
+	if _is_physics_animation and self.visible:
 		__process_effect(delta)
 
 
 func _on_visibility_changed():
 	if self.visible:
-		if !is_persistent:
-			current_step_index = start_step_index
+		if !_is_persistent:
+			current_step_index = initial_step_index
 			_start_output = null
 			_current_step_delta = 0
 
@@ -132,7 +133,7 @@ func __process_effect(delta: float):
 
 			_current_step_delta -= current_step_duration
 
-			if (!is_repeating) and (current_step_index == start_step_index):
+			if (!_is_repeating) and (current_step_index == initial_step_index):
 				# Stop animation after 1 loop has completed
 				self.visible = false
 				return

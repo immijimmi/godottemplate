@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0k2nn5mgm4e0"]
+
+[ext_resource type="Script" path="res://Components/Generic/Scripts/deploy_slide.gd" id="1_0l11s"]
+
+[node name="DeploySlide" type="Node2D"]
+script = ExtResource("1_0l11s")
+deploy_direction = null
+deploy_offset = null
+deploy_initial_speed = null
+deploy_minimum_speed = null
+deploy_attenuation = null
+do_print_deceleration = null
